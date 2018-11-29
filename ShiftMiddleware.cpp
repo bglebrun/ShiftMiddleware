@@ -2,18 +2,14 @@
 #include "sharedmemory.h"
 #include <stdio.h>
 #include <conio.h>
-#include <dinput.h>
-#include <map>
+#include "DirectInput.h"
 #define MAP_OBJECT_NAME "$pcars2$"
 // Keybinds to use for shifting, see: https://docs.microsoft.com/en-us/windows/desktop/inputdev/virtual-key-codes
 // Default O->ShiftDown P->ShiftUp
+/*
 #define SHIFT_UP_KEYBIND 0x50
 #define SHIFT_DOWN_KEYBIND 0x4F
-
-DWORD mapKey(DWORD Key)
-{
-return RegToDirect.at(Key);
-}
+*/
 
 int main() {
   // Keyboard input event
@@ -24,8 +20,12 @@ int main() {
   ip.ki.wVk = 0;
   ip.ki.dwExtraInfo = 0;
   ip.ki.dwFlags = KEYEVENTF_SCANCODE;
-  std::map<DWORD, DWORD> RegToDirect;
-  RegToDirect[0x20] = DIKEYBOARD_SPACE;
+
+  // Change these in fomat DIKEYBOARD_*, see: https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ee418643(v=vs.85)
+  /*
+  RegToDirect[SHIFT_UP_KEYBIND] = DIKEYBOARD_P;
+  RegToDirect[SHIFT_DOWN_KEYBIND] = DIKEYBOARD_O;
+  */
   // Open the memory-mapped file
   HANDLE fileHandle = OpenFileMapping( PAGE_READONLY, FALSE, MAP_OBJECT_NAME );
   if (fileHandle == NULL)
@@ -98,20 +98,20 @@ int main() {
     printf( "SPEED: %0.2fd \n", localCopy->mSpeed);
     printf( ((localCopy->mRpm > 0.8*localCopy->mMaxRPM)? "SHIFT UP" : "" ));
     printf( (((localCopy->mRpm < 0.25*localCopy->mMaxRPM) && localCopy->mSpeed < 5 && localCopy->mGear > 1 )? "SHIFT DOWN" : "" ));
-    if ((localCopy->mRpm > 0.8*localCopy->mMaxRPM) {
+    if (localCopy->mRpm > 0.8*localCopy->mMaxRPM) {
       // Press Shift up
-      ip.ki.wScan = RegToDirect(SHIFT_UP_KEYBIND);
+      ip.ki.wScan = DIKEYBOARD_P;
   		SendInput(1, &ip, sizeof(INPUT));
-      sleep(20);
+      Sleep(20);
       // Release the key
       ip.ki.dwFlags = KEYEVENTF_KEYUP; // KEYEVENTF_KEYUP for key release
       SendInput(1, &ip, sizeof(INPUT));
 
-    } elseif ((localCopy->mRpm < 0.25*localCopy->mMaxRPM) && localCopy->mSpeed < 5 && localCopy->mGear > 1 ) {
+    } else if ((localCopy->mRpm < 0.25*localCopy->mMaxRPM) && localCopy->mSpeed < 5 && localCopy->mGear > 1 ) {
       // Press Shift down
-      ip.ki.wScan = RegToDirect(SHIFT_DOWN_KEYBIND);
+      ip.ki.wScan = DIKEYBOARD_O;
       SendInput(1, &ip, sizeof(INPUT));
-
+      Sleep(20);
       // Release the key
       ip.ki.dwFlags = KEYEVENTF_KEYUP; // KEYEVENTF_KEYUP for key release
       SendInput(1, &ip, sizeof(INPUT));
